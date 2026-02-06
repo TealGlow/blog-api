@@ -1,49 +1,51 @@
-using System;
-using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.AspNetCore.Http.HttpResults;
 using MongoDB.Bson;
-using MongoDB.Driver;
-
-
-// TODO: Clean up and make sure the return types are correct / data is correctly handled.
 
 /// <summary>
-/// The BlogService class serves as the business logic layer for managing blog posts in the application. It interacts with the IPostRepository to perform operations such as retrieving a single blog post by its unique identifier and retrieving all blog posts. The BlogService abstracts away the details of data access and provides a clean interface for the controllers to interact with when handling HTTP requests related to blog posts. This separation of concerns allows for better maintainability and testability of the code, as the business logic is decoupled from the data access layer. The BlogService can be easily extended in the future to include additional operations such as adding, updating, or deleting blog posts without affecting the controllers or the repository implementation.
+/// The BlogService class serves as the business logic layer for managing blog posts in the application.
 /// </summary>
 public class BlogService : IBlogService
 {
     private readonly IPostRepository _repo;
 
+    public BlogService(IPostRepository repo)
+    {
+        _repo = repo;
+    }
+
     /// <summary>
-    /// Retrieves a single blog post by its unique identifier. This method takes a string ID as
-    /// input and returns a GetBlogPostResponse containing the details of the requested blog post. The method interacts with the IPostRepository to fetch the blog post from the database, and it handles any necessary business logic or transformations before returning the response. If the specified blog post is not found, the method may return null or throw an exception, depending on the implementation of the repository and error handling strategy.
+    /// Retrieves a single blog post by its unique identifier. 
     /// </summary>
-    /// <param name="id">The unique identifier of the blog post to be retrieved. This is a required parameter and should correspond to an existing blog post in the database.</param>
-    /// <returns>A GetBlogPostResponse containing the details of the requested blog post, including
+    /// <param name="id">The unique identifier of the blog post to be retrieved. </param>
+    /// <returns>A GetBlogPostResponse containing the details of the requested blog post.</returns>
     public async Task<GetBlogPostResponse> GetBlogPostAsync(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-        throw new ArgumentException("Invalid blog post id");
-        
+            throw new ArgumentException("Invalid blog post id");
+
         var response = await _repo.GetByIdAsync(objectId);
-        if(response == null) throw new Exception("Blog post now round.");
+        if (response == null) throw new Exception("Blog post now round.");
 
         return new GetBlogPostResponse
         {
-            Id = response.Id.ToString()
+            Id = response.Id.ToString(),
+            Title = response.Title,
+            Content = response.Content,
+            CreatedBy = response.CreatedBy,
+            CreatedAt = response.CreatedAt,
+            UpdatedAt = response.UpdatedAt
         };
     }
 
     /// <summary>
-    /// Retrieves all blog posts from the database. This method does not take any parameters and returns a GetAllBlogPostsResponse containing a list of PostDto objects, which represent the individual blog posts retrieved from the database. The method interacts with the IPostRepository to fetch all blog posts, and it may include any necessary business logic or transformations before returning the response. If no blog posts are found, the BlogPosts property in the response will be an empty list.
+    /// Retrieves all blog posts from the database. 
     /// </summary>
-    /// <param name="request">The request object for retrieving all blog posts. This parameter is currently not used in the method, but it serves as a placeholder for any future enhancements or additional filtering options that may be added to the retrieval of blog posts.</param>
-    /// <returns>
-    ///  A GetAllBlogPostsResponse containing a list of PostDto objects representing the blog posts retrieved from the database. Each PostDto includes details such as the post's ID, title, content, author, and timestamps for creation and updates. If no blog posts are found, the BlogPosts property will be an empty list.
-    /// </returns>
+    /// <param name="request">The request object for retrieving all blog posts. </param
+    /// <returns> A GetAllBlogPostsResponse containing a list of PostDto objects representing the blog posts retrieved from the database.</returns>
     public async Task<GetAllBlogPostsResponse> GetAllBlogPostsAsync()
     {
         var response = await _repo.GetAllAsync();
-        if(response == null) throw new Exception("Blog posts not found.");
+        if (response == null) throw new Exception("Blog posts not found.");
 
         return new GetAllBlogPostsResponse
         {
@@ -52,11 +54,13 @@ public class BlogService : IBlogService
     }
 
     /// <summary>
-    /// Adds a new blog post to the database. This method takes an AddBlogPostRequest containing the necessary information for creating a new blog post, such as the title, content, and author. The method interacts with the IPostRepository to save the new blog post to the database, and it may include any necessary business logic or validations before performing the operation. Upon successful completion, the method returns an AddBlogPostResponse, which currently does not contain any specific data but serves as a placeholder for future enhancements or additional information that may need to be included in the response, such as a success message or the ID of the newly created post.
+    /// Adds a new blog post to the database. 
     /// </summary>
-    /// <param name="request"></param>
+    /// <param name="request">
+    /// The request object containing the necessary information to create a new blog post, including the title, content, and author of the post. The Title and Content fields are required and cannot be empty, while the CreatedBy field is optional and can be left empty if not provided. The method will validate the input data and throw an ArgumentException if any required fields are missing or invalid. Upon successful creation of the blog post, the method will return an AddBlogPostResponse containing the unique identifier of the newly created post.
+    /// </param>
     /// <returns>
-    /// An AddBlogPostResponse indicating the result of the add operation. Currently, this response does not contain any specific data, but it serves as a placeholder for future enhancements or additional information that may need to be included in the response, such as a success message or the ID of the newly created post.
+    /// An AddBlogPostResponse indicating the result of the add operation.
     /// </returns>
     public async Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request)
     {
@@ -64,32 +68,46 @@ public class BlogService : IBlogService
         {
             Title = request.Title,
             Content = request.Content,
-            CreatedBy = request.Content,
+            CreatedBy = request.CreatedBy,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
 
         var response = await _repo.AddAsync(post);
-        if(response == null) throw new Exception("Error adding post");
-        
+        if (response == ObjectId.Empty)
+            throw new Exception("Error adding post");
+        if (response.CreationTime == DateTime.MinValue)
+            throw new Exception("Error adding post");
+
         return new AddBlogPostResponse
         {
-            Id= response.ToString()
+            Id = response.ToString()
         };
     }
 
     /// <summary>
     /// Updates an existing blog post in the database. This method takes an UpdateBlogPostRequest
     /// </summary>
-    /// <param name="request">The request object containing the necessary information to identify which blog post to update, specifically the ID of the post, as well as the new values for the title, content, and author of the blog post. The ID is expected to be a string that corresponds to the unique identifier of the blog post in the database. The Title and Content fields are required and cannot be empty, while the CreatedBy field is optional and can be left empty if not being updated.</param>
-    /// <returns>An UpdateBlogPostResponse indicating the result of the update operation. This response may contain information about the updated blog post or any relevant metadata related to the update process.</returns>
+    /// <param name="request">The request object containing the necessary information to identify which blog post to update, 
+    /// specifically the ID of the post, as well as the new values for the title, content, and author of the blog post. </param>
+    /// <returns>An UpdateBlogPostResponse indicating the result of the update operation. </returns>
     public async Task<UpdateBlogPostResponse> UpdateBlogPostAsync(UpdateBlogPostRequest request)
     {
         if (!ObjectId.TryParse(request.Id, out var objectId))
-        throw new ArgumentException("Invalid blog post id");
+        {
+            throw new ArgumentException("Invalid Blog Post ID format.");
+        }
 
-        
         var response = await _repo.UpdateAsync(request, objectId);
+        if (response == null)
+            throw new Exception("Error updating post");
+
+        if (response.MatchedCount == 0)
+            throw new KeyNotFoundException("Blog post not found.");
+
+        if (response.ModifiedCount == 0)
+            throw new InvalidOperationException("No changes were made to the blog post.");
+
         return new UpdateBlogPostResponse
         {
             Id = request.Id
@@ -99,13 +117,18 @@ public class BlogService : IBlogService
     /// <summary>
     /// Deletes an existing blog post from the database. This method takes a string ID as input
     /// and interacts with the IPostRepository to remove the corresponding blog post from the database. The method may include any necessary business logic or validations before performing the delete operation, such as checking if the blog post exists or if the user has the necessary permissions to delete the post. Upon successful completion, the method does not return any specific data, but it may throw an exception if the specified blog post is not found or if there is an error during the deletion process.
-    /// </summary> <param name="id">The unique identifier of the blog post to be deleted. This is a required parameter and should correspond to an existing blog post in the database.</param>
+    /// </summary> 
+    /// <param name="id">The unique identifier of the blog post to be deleted.</param>
+    /// <returns>A DeleteBlogPostResponse indicating the result of the delete operation.</returns>
     public async Task<DeleteBlogPostResponse> DeleteBlogPostAsync(string id)
     {
-         if (!ObjectId.TryParse(id, out var objectId))
-        throw new ArgumentException("Invalid blog post id");
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ArgumentException("Invalid blog post id");
 
-        var result = await _repo.DeleteAsync(objectId);
+        var response = await _repo.DeleteAsync(objectId);
+        if (response.DeletedCount == 0)
+            throw new KeyNotFoundException("Blog post not found.");
+
         return new DeleteBlogPostResponse
         {
             Id = id

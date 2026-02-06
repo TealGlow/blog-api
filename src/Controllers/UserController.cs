@@ -8,10 +8,10 @@ namespace User.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
         // private readonly IPasswordHasher<object> _passwordHasher;
 
-        public UserController(UserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
             // _passwordHasher = passwordHasher;
@@ -28,7 +28,7 @@ namespace User.Controllers
         public async Task<ActionResult<AddUserResponse>> CreateUser([FromBody] AddUserRequest request)
         {
             var result = await _userService.AddUserAsync(request);
-            return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
+            return Ok(result);
         }
 
     }

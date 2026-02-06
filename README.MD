@@ -13,4 +13,5 @@ Stack:
 1. Download MongoDb
 2. Download MongoDb Compass
 3. Install [.net10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-4. Run `dotnet build`
+4. Create .env file in root with a variable of `JWT_SECRET = [YOUR SECRET HERE]`
+5. Run `dotnet build`

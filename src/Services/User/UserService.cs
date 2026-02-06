@@ -1,14 +1,19 @@
 using MongoDB.Bson;
 
-public class UserService: IUserService
+public class UserService : IUserService
 {
     private readonly IUserRepository _repo;
+
+    public UserService(IUserRepository repo)
+    {
+        _repo = repo;
+    }
 
     public async Task<GetUserResponse> GetUserProfileAsync(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-        throw new ArgumentException("Invalid blog post id");
-        
+            throw new ArgumentException("Invalid blog post id");
+
         var user = await _repo.GetByIdAsync(objectId);
         if (user == null) throw new Exception("User not found");
 
