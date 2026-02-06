@@ -20,16 +20,42 @@ namespace User.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserResponse>> GetUser(string id)
         {
-            var user = await _userService.GetUserProfileAsync(id);
-            return Ok(user);
+            try
+            {
+                var user = await _userService.GetUserProfileAsync(id);
+                return Ok(user);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<AddUserResponse>> CreateUser([FromBody] AddUserRequest request)
         {
-            var result = await _userService.AddUserAsync(request);
-            return Ok(result);
-        }
+            try
+            {
 
+                var result = await _userService.AddUserAsync(request);
+                return Created("User", result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

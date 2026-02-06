@@ -76,8 +76,6 @@ public class BlogService : IBlogService
         var response = await _repo.AddAsync(post);
         if (response == ObjectId.Empty)
             throw new Exception("Error adding post");
-        if (response.CreationTime == DateTime.MinValue)
-            throw new Exception("Error adding post");
 
         return new AddBlogPostResponse
         {

@@ -43,16 +43,16 @@ public class PostRepository : IPostRepository
         }).ToList();
     }
 
-    public async Task<ObjectId> AddAsync(Post request)
+    public async Task<ObjectId> AddAsync(Post post)
     {
-        await _collection.InsertOneAsync(request);
-        return request.Id;
+        await _collection.InsertOneAsync(post);
+        return post.Id;
     }
 
-    public async Task<UpdateResult> UpdateAsync(UpdateBlogPostRequest request, ObjectId id)
+    public async Task<UpdateResult> UpdateAsync(UpdateBlogPostRequest updatePost, ObjectId id)
     {
         // check if there is actually an update to be made
-        if (request.Title == null && request.Content == null)
+        if (updatePost.Title == null && updatePost.Content == null)
         {
             throw new ArgumentException("At least one of Title or Content must be provided for update.");
         }
@@ -61,13 +61,13 @@ public class PostRepository : IPostRepository
 
         // Build the update definition based on which fields are provided in the request
         var update = Builders<Post>.Update.Set(u => u.UpdatedAt, DateTime.UtcNow);
-        if (request.Title != null)
+        if (updatePost.Title != null)
         {
-            update = update.Set(p => p.Title, request.Title);
+            update = update.Set(p => p.Title, updatePost.Title);
         }
-        if (request.Content != null)
+        if (updatePost.Content != null)
         {
-            update = update.Set(p => p.Content, request.Content);
+            update = update.Set(p => p.Content, updatePost.Content);
         }
 
         try
