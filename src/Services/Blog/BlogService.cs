@@ -96,6 +96,12 @@ public class BlogService : IBlogService
             throw new ArgumentException("Invalid Blog Post ID format.");
         }
 
+        var existingPost = await _repo.GetByIdAsync(objectId);
+        if (existingPost == null)
+        {
+            throw new KeyNotFoundException($"Blog post with ID {request.Id} not found.");
+        }
+
         var response = await _repo.UpdateAsync(request, objectId);
         if (response == null)
             throw new Exception("Error updating post");
