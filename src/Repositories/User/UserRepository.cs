@@ -25,7 +25,6 @@ public class UserRepository : IUserRepository
             Id = result.Id,
             UserName = result.UserName,
             Email = result.Email,
-            Password = result.Password,
             CreatedAt = result.CreatedAt
         };
     }
@@ -42,6 +41,7 @@ public class UserRepository : IUserRepository
     public async Task<ObjectId> AddAsync(UserProfile user)
     {
         await _collection.InsertOneAsync(user);
+
         return user.Id;
     }
 
@@ -57,10 +57,8 @@ public class UserRepository : IUserRepository
         {
             update = update.Set(u => u.Email, request.Email);
         }
-        if (request.Password != null)
-        {
-            update = update.Set(u => u.Password, request.Password);
-        }
+
+        // TODO handle password differently since it is stored in a different collection
 
         try
         {

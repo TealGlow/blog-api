@@ -35,6 +35,10 @@ public class Startup
         {
             database.CreateCollection("Users");
         }
+        if (!collectionNames.Contains("Credentials"))
+        {
+            database.CreateCollection("Credentials");
+        }
 
         //JWT
         Configuration["JwtSettings:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default_secret_key";
@@ -46,6 +50,7 @@ public class Startup
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBlogService, BlogService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IPasswordService, PasswordService>();
 
         services.AddControllers();
     }

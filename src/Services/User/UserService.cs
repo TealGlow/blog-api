@@ -7,10 +7,12 @@ using MongoDB.Driver;
 public class UserService : IUserService
 {
     private readonly IUserRepository _repo;
+    private readonly IPasswordService _passwordService;
 
-    public UserService(IUserRepository repo)
+    public UserService(IUserRepository repo, IPasswordService passwordService)
     {
         _repo = repo;
+        _passwordService = passwordService;
     }
 
     /// <summary>
@@ -42,11 +44,11 @@ public class UserService : IUserService
     /// <returns>Id of added user.</returns>
     public async Task<AddUserResponse> AddUserAsync(AddUserRequest request)
     {
+        var hashedPassword = _passwordService.HashPassword(request.Password);
         var userProfile = new UserProfile
         {
             UserName = request.UserName,
             Email = request.Email,
-            Password = request.Password,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -54,6 +56,9 @@ public class UserService : IUserService
         //check if username or email already exists
         var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
         if (existingUser != null) throw new ArgumentException("A user with the same username or email already exists.");
+
+        var credentialsStored = await _passwordService.StoreHashedPasswordAsync(hashedPassword, userProfile.Id);
+        if (!credentialsStored) throw new Exception("Failed to store user credentials.");
 
         var response = await _repo.AddAsync(userProfile);
         if (response == ObjectId.Empty) throw new Exception("Failed to create user.");
@@ -108,6 +113,7 @@ public class UserService : IUserService
 
         // TODO: Validate user is authorized to delete this profile, Only a user can delete their own profile, or an admin can delete any profile.
         // We want only admins to be able to delete user profiles, so we can add a placeholder check here for now, and implement proper authorization after we have authentication in place.
+
         var result = await _repo.SoftDeleteAsync(objectId);
         if (result == null) throw new Exception("User not found");
 

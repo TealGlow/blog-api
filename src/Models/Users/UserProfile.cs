@@ -25,12 +25,6 @@ public class UserProfile
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
-    /// Password.
-    /// </summary>
-    [Required]
-    public string Password { get; set; } = string.Empty;
-
-    /// <summary>
     /// The date and time when the blog post was created. This is automatically set to the current UTC time when a new post is created.
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
