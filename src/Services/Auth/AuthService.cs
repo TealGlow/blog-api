@@ -37,7 +37,7 @@ public class AuthService : IAuthService
         var passwordValid = _passwordService.VerifyPassword(request.Password, hashedPassword);
         if (!passwordValid) throw new ArgumentException("Invalid password.");
 
-        var token = GenerateJwtToken(request.UserName);
+        var token = GenerateJwtToken(user);
         return new AuthLoginResponse
         {
             Success = true,
@@ -45,25 +45,34 @@ public class AuthService : IAuthService
         };
     }
 
-    private string GenerateJwtToken(string username)
+    private string GenerateJwtToken(UserProfile user)
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
+            // Use the full namespace to avoid the BinaryReader conflict
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            // Add custom claims like roles here
             new Claim(ClaimTypes.Role, "User")
         };
 
-        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"] ?? "default_really_long_secret_key_that_should_be_changed"));
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+                      ?? "a_very_long_fallback_secret_32_chars";
+        var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+                        ?? "YourApiIssuer";
+        var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+                        ?? "YourApiClient";
+
+        var keyString = jwtSecret ?? "default_secret_key";
+        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+
         var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.Now.AddMinutes(30); // Set token expiration time
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: jwtIssuer,
+            audience: jwtAudience, // Match "JwtSettings"
             claims: claims,
-            expires: expires,
+            expires: DateTime.UtcNow.AddMinutes(60), // Use UtcNow for consistency
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

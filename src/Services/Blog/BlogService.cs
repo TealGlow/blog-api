@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using MongoDB.Bson;
 
 /// <summary>
@@ -7,10 +6,12 @@ using MongoDB.Bson;
 public class BlogService : IBlogService
 {
     private readonly IPostRepository _repo;
+    private readonly IUserRepository _userRepo;
 
-    public BlogService(IPostRepository repo)
+    public BlogService(IPostRepository repo, IUserRepository userRepo)
     {
         _repo = repo;
+        _userRepo = userRepo;
     }
 
     /// <summary>
@@ -49,7 +50,15 @@ public class BlogService : IBlogService
 
         return new GetAllBlogPostsResponse
         {
-            BlogPosts = response
+            BlogPosts = response.Select(post => new PostDto
+            {
+                Id = post.Id.ToString(),
+                Title = post.Title,
+                Content = post.Content,
+                CreatedBy = post.CreatedBy,
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt
+            }).ToList()
         };
     }
 
@@ -62,15 +71,19 @@ public class BlogService : IBlogService
     /// <returns>
     /// An AddBlogPostResponse indicating the result of the add operation.
     /// </returns>
-    public async Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request)
+    public async Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request, string userId)
     {
+        var user = await _userRepo.GetByIdAsync(new ObjectId(userId));
+        if (user == null) throw new Exception("User not found.");
+
         var post = new Post
         {
             Title = request.Title,
             Content = request.Content,
-            CreatedBy = request.CreatedBy,
+            CreatedBy = user.UserName,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
+            AuthorId = user.Id.ToString()
         };
 
         var response = await _repo.AddAsync(post);
@@ -89,7 +102,7 @@ public class BlogService : IBlogService
     /// <param name="request">The request object containing the necessary information to identify which blog post to update, 
     /// specifically the ID of the post, as well as the new values for the title, content, and author of the blog post. </param>
     /// <returns>An UpdateBlogPostResponse indicating the result of the update operation. </returns>
-    public async Task<UpdateBlogPostResponse> UpdateBlogPostAsync(UpdateBlogPostRequest request)
+    public async Task<UpdateBlogPostResponse> UpdateBlogPostAsync(UpdateBlogPostRequest request, string userId)
     {
         if (!ObjectId.TryParse(request.Id, out var objectId))
         {
@@ -100,6 +113,10 @@ public class BlogService : IBlogService
         if (existingPost == null)
         {
             throw new KeyNotFoundException($"Blog post with ID {request.Id} not found.");
+        }
+        if (existingPost.AuthorId != userId)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to update this post.");
         }
 
         var response = await _repo.UpdateAsync(request, objectId);
@@ -124,10 +141,16 @@ public class BlogService : IBlogService
     /// </summary> 
     /// <param name="id">The unique identifier of the blog post to be deleted.</param>
     /// <returns>A DeleteBlogPostResponse indicating the result of the delete operation.</returns>
-    public async Task<DeleteBlogPostResponse> DeleteBlogPostAsync(string id)
+    public async Task<DeleteBlogPostResponse> DeleteBlogPostAsync(string id, string userId)
     {
         if (!ObjectId.TryParse(id, out var objectId))
             throw new ArgumentException("Invalid blog post id");
+
+        // find post to make sure it exists and to check if the user is authorized to delete it
+        var post = await _repo.GetByIdAsync(objectId);
+
+        if (post.AuthorId != userId)
+            throw new UnauthorizedAccessException("You do not have permission to delete this post.");
 
         var response = await _repo.DeleteAsync(objectId);
         if (response.DeletedCount == 0)
