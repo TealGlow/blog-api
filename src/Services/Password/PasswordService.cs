@@ -24,7 +24,13 @@ public class PasswordService : IPasswordService
 
     public async Task<bool> StoreHashedPasswordAsync(string hashedPassword, ObjectId userId)
     {
+        // store hashed password and user id in credentials collection
         return await _repo.AddAsync(hashedPassword, userId);
     }
 
+    public async Task<string> GetHashedPasswordAsync(ObjectId userId)
+    {
+        // get hashed password from credentials collection based on username or email
+        return await _repo.GetHashedPasswordAsync(userId);
+    }
 }

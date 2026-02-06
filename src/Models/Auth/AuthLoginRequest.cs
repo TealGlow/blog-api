@@ -1,4 +1,4 @@
-public class UserLoginRequest
+public class AuthLoginRequest
 {
     /// <summary>
     /// The unique identifier for the user.

@@ -14,7 +14,7 @@ public class CredentialsRepository : ICredentialsRepository
     {
         var credentials = new Credentials
         {
-            Id = userId,
+            UserId = userId,
             HashedPassword = hashedPassword
         };
         try
@@ -61,5 +61,14 @@ public class CredentialsRepository : ICredentialsRepository
             Console.WriteLine($"Error deleting credentials: {ex.Message}");
             return false;
         }
+    }
+
+    public async Task<string> GetHashedPasswordAsync(ObjectId userId)
+    {
+        var filter = Builders<Credentials>.Filter.Eq(c => c.UserId, userId);
+        var credentials = await _collection.Find(filter).FirstOrDefaultAsync();
+        if (credentials == null) throw new ArgumentException("Credentials not found for user.");
+
+        return credentials.HashedPassword;
     }
 }

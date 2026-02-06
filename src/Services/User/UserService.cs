@@ -38,6 +38,35 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// Retrieves a user profile by its username or email.
+    /// </summary>
+    /// <param name="usernameOrEmail">The username or email of the user profile to retrieve</param>
+    /// <returns>GetUserResponse object.</returns>
+    /// This will be used for authentication, since users can log in with either their username or email, so we need to be able to retrieve their profile based on either of those fields.
+    public async Task<UserProfile> GetUserProfileByUsernameOrEmailAsync(string usernameOrEmail)
+    {
+        if (string.IsNullOrEmpty(usernameOrEmail))
+            throw new ArgumentException("Username or email must be provided");
+
+        var userProfile = new UserProfile
+        {
+            UserName = usernameOrEmail,
+            Email = usernameOrEmail
+        };
+
+        var user = await _repo.GetByUsernameOrEmail(userProfile);
+        if (user == null) throw new Exception("User not found");
+
+        return new UserProfile
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            CreatedAt = user.CreatedAt
+        };
+    }
+
+    /// <summary>
     /// Adds a new user profile to the database.
     /// </summary>
     /// <param name="request">User profile to add</param>
@@ -57,11 +86,12 @@ public class UserService : IUserService
         var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
         if (existingUser != null) throw new ArgumentException("A user with the same username or email already exists.");
 
-        var credentialsStored = await _passwordService.StoreHashedPasswordAsync(hashedPassword, userProfile.Id);
-        if (!credentialsStored) throw new Exception("Failed to store user credentials.");
 
         var response = await _repo.AddAsync(userProfile);
         if (response == ObjectId.Empty) throw new Exception("Failed to create user.");
+
+        var credentialsStored = await _passwordService.StoreHashedPasswordAsync(hashedPassword, response);
+        if (!credentialsStored) throw new Exception("Failed to store user credentials.");
 
         return new AddUserResponse
         {
@@ -123,38 +153,36 @@ public class UserService : IUserService
         };
     }
 
-    /// <summary>
-    /// Authenticates a user and returns a response indicating success or failure of the login attempt.
-    /// </summary>
-    /// <param name="request">The login request containing the username/email and password.</param>
-    /// <returns>UserLoginResponse indicating the result of the login attempt.</returns>
-    public async Task<UserLoginResponse> LoginAsync(UserLoginRequest request)
-    {
-        if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Email))
-        {
-            throw new ArgumentException("Username or email must be provided.");
-        }
-        if (string.IsNullOrEmpty(request.Password))
-        {
-            throw new ArgumentException("Password must be provided.");
-        }
+    // /// <summary>
+    // /// Authenticates a user and returns a response indicating success or failure of the login attempt.
+    // /// </summary>
+    // /// <param name="request">The login request containing the username/email and password.</param>
+    // /// <returns>UserLoginResponse indicating the result of the login attempt.</returns>
+    // public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
+    // {
+    //     if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Email))
+    //     {
+    //         throw new ArgumentException("Username or email must be provided.");
+    //     }
+    //     if (string.IsNullOrEmpty(request.Password))
+    //     {
+    //         throw new ArgumentException("Password must be provided.");
+    //     }
 
-        var userProfile = new UserProfile
-        {
-            UserName = request.UserName,
-            Email = request.Email
-        };
+    //     var userProfile = new UserProfile
+    //     {
+    //         UserName = request.UserName,
+    //         Email = request.Email
+    //     };
 
-        // check if user exists with given username or email
-        var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
-        if (existingUser == null) throw new ArgumentException("Invalid username or email.");
+    //     // check if user exists with given username or email
+    //     var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
+    //     if (existingUser == null) throw new ArgumentException("Invalid username or email.");
 
-        // validate password
-        var passwordValid = _passwordService.VerifyPassword(request.Password, request.Password);
-        if (!passwordValid) throw new ArgumentException("Invalid password.");
+    //     // validate password
+    //     var result = await _authService.LoginAsync(request);
+    //     if (result == null) throw new Exception("Login failed.");
 
-        // TODO JWT generation and return token in response, but for now we will just return a successful login response without a token since we haven't implemented authentication yet.
-
-        return new UserLoginResponse();
-    }
+    //     return result;
+    // }
 }

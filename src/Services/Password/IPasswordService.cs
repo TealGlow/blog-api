@@ -7,5 +7,7 @@ public interface IPasswordService
 
     bool VerifyPassword(string enteredPassword, string storedHash);
 
-    Task<bool> StoreHashedPasswordAsync(string password, ObjectId userId);
+    Task<string> GetHashedPasswordAsync(ObjectId userId);
+
+    Task<bool> StoreHashedPasswordAsync(string hashedPassword, ObjectId userId);
 }

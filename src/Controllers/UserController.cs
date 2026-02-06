@@ -101,28 +101,28 @@ namespace User.Controllers
         }
 
         // Login
-        [HttpPost("login")]
-        public async Task<ActionResult<UserLoginResponse>> Login([FromBody] UserLoginRequest request)
-        {
-            try
-            {
-                var response = await _userService.LoginAsync(request);
-                return Ok(response);
+        // [HttpPost("login")]
+        // public async Task<ActionResult<AuthLoginResponse>> Login([FromBody] AuthLoginRequest request)
+        // {
+        //     try
+        //     {
+        //         var response = await _userService.LoginAsync(request);
+        //         return Ok(response);
 
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+        //     }
+        //     catch (ArgumentException ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        //     catch (KeyNotFoundException ex)
+        //     {
+        //         return NotFound(ex.Message);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, $"Internal server error: {ex.Message}");
+        //     }
+        // }
 
         // // logout
         // [HttpPost("logout")]
