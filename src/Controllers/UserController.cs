@@ -8,24 +8,26 @@ namespace User.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserManager _userManager;
+        private readonly UserService _userService;
+        // private readonly IPasswordHasher<object> _passwordHasher;
 
-        public UserController(UserManager userManager)
+        public UserController(UserService userService)
         {
-            _userManager = userManager;
+            _userService = userService;
+            // _passwordHasher = passwordHasher;
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserResponse>> GetUser(string id)
         {
-            var user = await _userManager.GetUsersAsync(id);
+            var user = await _userService.GetUserProfileAsync(id);
             return Ok(user);
         }
 
         [HttpPost]
         public async Task<ActionResult<AddUserResponse>> CreateUser([FromBody] AddUserRequest request)
         {
-            var result = await _userManager.AddUserAsync(request);
+            var result = await _userService.AddUserAsync(request);
             return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
         }
 

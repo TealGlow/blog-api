@@ -1,17 +1,17 @@
 using System;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+
+// TODO: Clean up and make sure the return types are correct / data is correctly handled.
 
 /// <summary>
-/// The BlogManager class serves as the business logic layer for managing blog posts in the application. It interacts with the IPostRepository to perform operations such as retrieving a single blog post by its unique identifier and retrieving all blog posts. The BlogManager abstracts away the details of data access and provides a clean interface for the controllers to interact with when handling HTTP requests related to blog posts. This separation of concerns allows for better maintainability and testability of the code, as the business logic is decoupled from the data access layer. The BlogManager can be easily extended in the future to include additional operations such as adding, updating, or deleting blog posts without affecting the controllers or the repository implementation.
+/// The BlogService class serves as the business logic layer for managing blog posts in the application. It interacts with the IPostRepository to perform operations such as retrieving a single blog post by its unique identifier and retrieving all blog posts. The BlogService abstracts away the details of data access and provides a clean interface for the controllers to interact with when handling HTTP requests related to blog posts. This separation of concerns allows for better maintainability and testability of the code, as the business logic is decoupled from the data access layer. The BlogService can be easily extended in the future to include additional operations such as adding, updating, or deleting blog posts without affecting the controllers or the repository implementation.
 /// </summary>
-public class BlogManager
+public class BlogService : IBlogService
 {
-    private readonly IPostRepository<PostDto> _repository;
-
-    public BlogManager(IPostRepository<PostDto> repository)
-    {
-        _repository = repository;
-    }
+    private readonly IPostRepository _repo;
 
     /// <summary>
     /// Retrieves a single blog post by its unique identifier. This method takes a string ID as
@@ -21,7 +21,16 @@ public class BlogManager
     /// <returns>A GetBlogPostResponse containing the details of the requested blog post, including
     public async Task<GetBlogPostResponse> GetBlogPostAsync(string id)
     {
-        return await _repository.GetByIdAsync(id);
+        if (!ObjectId.TryParse(id, out var objectId))
+        throw new ArgumentException("Invalid blog post id");
+        
+        var response = await _repo.GetByIdAsync(objectId);
+        if(response == null) throw new Exception("Blog post now round.");
+
+        return new GetBlogPostResponse
+        {
+            Id = response.Id.ToString()
+        };
     }
 
     /// <summary>
@@ -33,7 +42,13 @@ public class BlogManager
     /// </returns>
     public async Task<GetAllBlogPostsResponse> GetAllBlogPostsAsync()
     {
-        return await _repository.GetAllAsync();
+        var response = await _repo.GetAllAsync();
+        if(response == null) throw new Exception("Blog posts not found.");
+
+        return new GetAllBlogPostsResponse
+        {
+            BlogPosts = response
+        };
     }
 
     /// <summary>
@@ -45,8 +60,22 @@ public class BlogManager
     /// </returns>
     public async Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request)
     {
-        return await _repository.AddAsync(request);
+        var post = new Post
+        {
+            Title = request.Title,
+            Content = request.Content,
+            CreatedBy = request.Content,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
 
+        var response = await _repo.AddAsync(post);
+        if(response == null) throw new Exception("Error adding post");
+        
+        return new AddBlogPostResponse
+        {
+            Id= response.ToString()
+        };
     }
 
     /// <summary>
@@ -56,7 +85,15 @@ public class BlogManager
     /// <returns>An UpdateBlogPostResponse indicating the result of the update operation. This response may contain information about the updated blog post or any relevant metadata related to the update process.</returns>
     public async Task<UpdateBlogPostResponse> UpdateBlogPostAsync(UpdateBlogPostRequest request)
     {
-        return await _repository.UpdateAsync(request);
+        if (!ObjectId.TryParse(request.Id, out var objectId))
+        throw new ArgumentException("Invalid blog post id");
+
+        
+        var response = await _repo.UpdateAsync(request, objectId);
+        return new UpdateBlogPostResponse
+        {
+            Id = request.Id
+        };
     }
 
     /// <summary>
@@ -65,6 +102,13 @@ public class BlogManager
     /// </summary> <param name="id">The unique identifier of the blog post to be deleted. This is a required parameter and should correspond to an existing blog post in the database.</param>
     public async Task<DeleteBlogPostResponse> DeleteBlogPostAsync(string id)
     {
-        return await _repository.DeleteAsync(id);
+         if (!ObjectId.TryParse(id, out var objectId))
+        throw new ArgumentException("Invalid blog post id");
+
+        var result = await _repo.DeleteAsync(objectId);
+        return new DeleteBlogPostResponse
+        {
+            Id = id
+        };
     }
 }

@@ -34,5 +34,5 @@ public class Post
     /// The date and time when the blog post was last updated. This is automatically set to the current UTC time whenever the post is modified.
     /// It is nullable because a post may not have been updated after its initial creation.
     /// </summary>
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

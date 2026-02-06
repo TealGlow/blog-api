@@ -44,8 +44,11 @@ public class Startup
 
 
 
-        services.AddScoped<IPostRepository<PostDto>, PostRepository>();
-        services.AddScoped<BlogManager>();
+        services.AddScoped<IPostRepository, PostRepository>()
+                .AddScoped<IUserRepository, UserRepository>()
+                .AddScoped<IBlogService, BlogService>()
+                .AddScoped<IUserService, UserService>();
+    
         services.AddControllers();
     }
 
