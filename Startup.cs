@@ -42,10 +42,11 @@ public class Startup
         Configuration["JwtSettings:Audience"] = Configuration["JwtSettings:Audience"] ?? "YourApiClient";
         Configuration["JwtSettings:AccessTokenExpirationMinutes"] = Configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "60";
 
+        services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IBlogService, BlogService>();
+        services.AddScoped<IUserService, UserService>();
 
-
-        services.AddScoped<IPostRepository<PostDto>, PostRepository>();
-        services.AddScoped<BlogManager>();
         services.AddControllers();
     }
 

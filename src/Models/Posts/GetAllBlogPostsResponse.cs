@@ -7,5 +7,5 @@ public class GetAllBlogPostsResponse
     /// <summary>
     /// A list of PostDto objects representing the blog posts retrieved from the database. Each PostDto contains details about an individual blog post, including its ID, title, content, author, and timestamps for creation and updates. This property is initialized as an empty list to ensure that it can safely hold the retrieved blog posts without encountering null reference issues, even if no posts are found in the database.
     /// </summary>
-    public List<PostDto> BlogPosts { get; set; } = new List<PostDto>();
+    public List<Post> BlogPosts { get; set; } = new List<Post>();
 }

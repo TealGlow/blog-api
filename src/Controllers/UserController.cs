@@ -5,29 +5,149 @@ using System.Collections.Generic;
 namespace User.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserManager _userManager;
+        private readonly IUserService _userService;
+        // private readonly IPasswordHasher<object> _passwordHasher;
 
-        public UserController(UserManager userManager)
+        public UserController(IUserService userService)
         {
-            _userManager = userManager;
+            _userService = userService;
+            // _passwordHasher = passwordHasher;
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserResponse>> GetUser(string id)
         {
-            var user = await _userManager.GetUsersAsync(id);
-            return Ok(user);
+            try
+            {
+                var user = await _userService.GetUserProfileAsync(id);
+                return Ok(user);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<AddUserResponse>> CreateUser([FromBody] AddUserRequest request)
         {
-            var result = await _userManager.AddUserAsync(request);
-            return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
+            try
+            {
+
+                var result = await _userService.AddUserAsync(request);
+                return Created("User", result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+        {
+            request.Id = id;
+            try
+            {
+                await _userService.UpdateUserAsync(request);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(string id)
+        {
+            try
+            {
+                await _userService.DeleteUserAsync(id);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // // Login
+        // [HttpPost("login")]
+        // public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        // {
+        //     try
+        //     {
+        //         var response = await _userService.LoginAsync(request);
+        //         return Ok(response);
+
+        //     }
+        //     catch (ArgumentException ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        //     catch (KeyNotFoundException ex)
+        //     {
+        //         return NotFound(ex.Message);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, $"Internal server error: {ex.Message}");
+        //     }
+        // }
+
+        // // logout
+        // [HttpPost("logout")]
+        // public async Task<ActionResult> Logout([FromBody] LogoutRequest request)
+        // {
+        //     try
+        //     {
+        //         await _userService.LogoutAsync(request);
+        //         return NoContent();
+        //     }
+        //     catch (ArgumentException ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        //     catch (KeyNotFoundException ex)
+        //     {
+        //         return NotFound(ex.Message);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, $"Internal server error: {ex.Message}");
+        //     }
+        // }
     }
 }

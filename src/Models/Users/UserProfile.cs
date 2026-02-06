@@ -40,4 +40,9 @@ public class UserProfile
     /// It is nullable because a post may not have been updated after its initial creation.
     /// </summary>
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// isDeleted is a boolean property that indicates whether the user profile has been marked as deleted.
+    ///</summary>
+    public bool IsDeleted { get; set; } = false;
 }
