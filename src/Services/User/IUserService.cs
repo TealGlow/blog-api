@@ -7,4 +7,6 @@ public interface IUserService
     Task<UpdateUserResponse> UpdateUserAsync(UpdateUserRequest request);
 
     Task<DeleteUserResponse> DeleteUserAsync(string id);
+
+    Task<UserLoginResponse> LoginAsync(UserLoginRequest request);
 }

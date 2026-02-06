@@ -122,4 +122,39 @@ public class UserService : IUserService
             Id = id
         };
     }
+
+    /// <summary>
+    /// Authenticates a user and returns a response indicating success or failure of the login attempt.
+    /// </summary>
+    /// <param name="request">The login request containing the username/email and password.</param>
+    /// <returns>UserLoginResponse indicating the result of the login attempt.</returns>
+    public async Task<UserLoginResponse> LoginAsync(UserLoginRequest request)
+    {
+        if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Email))
+        {
+            throw new ArgumentException("Username or email must be provided.");
+        }
+        if (string.IsNullOrEmpty(request.Password))
+        {
+            throw new ArgumentException("Password must be provided.");
+        }
+
+        var userProfile = new UserProfile
+        {
+            UserName = request.UserName,
+            Email = request.Email
+        };
+
+        // check if user exists with given username or email
+        var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
+        if (existingUser == null) throw new ArgumentException("Invalid username or email.");
+
+        // validate password
+        var passwordValid = _passwordService.VerifyPassword(request.Password, request.Password);
+        if (!passwordValid) throw new ArgumentException("Invalid password.");
+
+        // TODO JWT generation and return token in response, but for now we will just return a successful login response without a token since we haven't implemented authentication yet.
+
+        return new UserLoginResponse();
+    }
 }
