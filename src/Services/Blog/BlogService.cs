@@ -133,9 +133,6 @@ public class BlogService : IBlogService
         if (response.DeletedCount == 0)
             throw new KeyNotFoundException("Blog post not found.");
 
-        return new DeleteBlogPostResponse
-        {
-            Id = id
-        };
+        return new DeleteBlogPostResponse();
     }
 }

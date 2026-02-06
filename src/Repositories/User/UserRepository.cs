@@ -70,6 +70,20 @@ public class UserRepository : IUserRepository
         {
             throw new Exception($"Error updating user: {ex.Message}");
         }
+    }
 
+    public async Task<UpdateResult> SoftDeleteAsync(ObjectId id)
+    {
+        var filter = Builders<UserProfile>.Filter.Eq(u => u.Id, id);
+        //soft delete
+        var update = Builders<UserProfile>.Update.Set(u => u.IsDeleted, true).Set(u => u.UpdatedAt, DateTime.UtcNow);
+        try
+        {
+            return await _collection.UpdateOneAsync(filter, update);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error deleting user: {ex.Message}");
+        }
     }
 }

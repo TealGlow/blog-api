@@ -92,4 +92,28 @@ public class UserService : IUserService
             Id = request.Id
         };
     }
+
+    /// <summary>
+    /// Deletes an existing user profile from the database.
+    /// </summary>
+    /// <param name="id">The Id of the user profile to delete</param>
+    /// <returns>Task representing the asynchronous operation.</returns>
+    public async Task<DeleteUserResponse> DeleteUserAsync(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ArgumentException("Invalid user id");
+
+        var existingUser = await _repo.GetByIdAsync(objectId);
+        if (existingUser == null) throw new Exception("User not found");
+
+        // TODO: Validate user is authorized to delete this profile, Only a user can delete their own profile, or an admin can delete any profile.
+        // We want only admins to be able to delete user profiles, so we can add a placeholder check here for now, and implement proper authorization after we have authentication in place.
+        var result = await _repo.SoftDeleteAsync(objectId);
+        if (result == null) throw new Exception("User not found");
+
+        return new DeleteUserResponse
+        {
+            Id = id
+        };
+    }
 }

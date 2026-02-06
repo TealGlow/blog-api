@@ -94,7 +94,7 @@ namespace Blog.Controllers
             try
             {
                 var result = await _blogService.DeleteBlogPostAsync(id);
-                return Ok(result);
+                return NoContent();
             }
             catch (KeyNotFoundException ex)
             {

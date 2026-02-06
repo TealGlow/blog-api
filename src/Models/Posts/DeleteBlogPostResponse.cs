@@ -3,7 +3,7 @@
 public class DeleteBlogPostResponse
 {
     /// <summary>
-    /// The Id of the newly created post as a string.
+    /// The Id of the deleted post as a string.
     /// </summary>
     public string Id { get; set; } = string.Empty;
 }

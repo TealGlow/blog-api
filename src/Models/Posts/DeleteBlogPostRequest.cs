@@ -1,10 +1,6 @@
 /// <summary>
 /// Represents the request to delete an existing blog post. 
 /// </summary>
-public class DeletelogPostRequest
+public class DeleteBlogPostRequest
 {
-    /// <summary>
-    /// The unique identifier for the blog post.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
 }

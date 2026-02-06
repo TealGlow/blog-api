@@ -81,27 +81,27 @@ namespace User.Controllers
             }
         }
 
-        // [HttpDelete("{id}")]
-        // public async Task<ActionResult> DeleteUser(string id)
-        // {
-        //     try
-        //     {
-        //         await _userService.DeleteUserAsync(id);
-        //         return NoContent();
-        //     }
-        //     catch (ArgumentException ex)
-        //     {
-        //         return BadRequest(ex.Message);
-        //     }
-        //     catch (KeyNotFoundException ex)
-        //     {
-        //         return NotFound(ex.Message);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return StatusCode(500, $"Internal server error: {ex.Message}");
-        //     }
-        // }
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(string id)
+        {
+            try
+            {
+                await _userService.DeleteUserAsync(id);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         // // Login
         // [HttpPost("login")]

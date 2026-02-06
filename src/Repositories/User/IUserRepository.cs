@@ -10,4 +10,6 @@ public interface IUserRepository
     Task<UpdateResult> UpdateAsync(UpdateUserRequest request, ObjectId id);
 
     Task<UserProfile> GetByUsernameOrEmail(UserProfile user);
+
+    Task<UpdateResult> SoftDeleteAsync(ObjectId id);
 }
