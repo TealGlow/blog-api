@@ -13,8 +13,4 @@ public class AddBlogPostRequest
     /// </summary>
     public string Content { get; set; } = string.Empty;
 
-    /// <summary>
-    /// The username of the author who created the blog post. This is a required field and cannot be empty. It represents the identity of the person responsible for creating the blog post and can be used for attribution, accountability, and to foster a sense of community among readers. The CreatedBy property helps to establish a connection between the content and its creator, allowing readers to recognize and engage with the author of the blog post.
-    /// </summary>
-    public string CreatedBy { get; set; } = string.Empty;
 }

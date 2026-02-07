@@ -1,4 +1,6 @@
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Controllers
@@ -44,11 +46,17 @@ namespace Blog.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<AddBlogPostResponse>> CreatePost([FromBody] AddBlogPostRequest request)
         {
             try
             {
-                var result = await _blogService.AddBlogPostAsync(request);
+                var userId = User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User ID claim is missing.");
+                }
+                var result = await _blogService.AddBlogPostAsync(request, userId);
                 return Created("Blog", result);
             }
             catch (ArgumentException ex)
@@ -62,12 +70,17 @@ namespace Blog.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<UpdateBlogPostResponse>> UpdatePost(string id, [FromBody] UpdateBlogPostRequest request)
         {
-            request.Id = id;
+            var userId = User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID claim is missing.");
+            }
             try
             {
-                var result = await _blogService.UpdateBlogPostAsync(request);
+                var result = await _blogService.UpdateBlogPostAsync(request, userId);
                 return Created("Blog", result);
             }
             catch (KeyNotFoundException ex)
@@ -89,11 +102,17 @@ namespace Blog.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<DeleteBlogPostResponse>> DeletePost(string id)
         {
+            var userId = User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID claim is missing.");
+            }
             try
             {
-                var result = await _blogService.DeleteBlogPostAsync(id);
+                var result = await _blogService.DeleteBlogPostAsync(id, userId);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)

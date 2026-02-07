@@ -16,6 +16,11 @@ public class Post
     public string CreatedBy { get; set; } = string.Empty;
 
     /// <summary>
+    /// The unique identifier of the author who created the blog post.
+    /// </summary>
+    public string AuthorId { get; set; } = string.Empty;
+
+    /// <summary>
     /// The title of the blog post. This is a required field and cannot be empty.
     /// </summary>
     public string Title { get; set; } = string.Empty;

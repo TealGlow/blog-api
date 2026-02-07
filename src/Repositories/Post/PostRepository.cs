@@ -24,7 +24,8 @@ public class PostRepository : IPostRepository
             Content = result.Content,
             CreatedAt = result.CreatedAt,
             UpdatedAt = result.UpdatedAt,
-            CreatedBy = result.CreatedBy
+            CreatedBy = result.CreatedBy,
+            AuthorId = result.AuthorId
         };
     }
 

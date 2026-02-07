@@ -1,4 +1,7 @@
 
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 
 /// <summary>
@@ -16,6 +19,8 @@ public class Startup
     {
         _ = services.AddRazorPages();
         _ = services.AddServerSideBlazor();
+
+        DotNetEnv.Env.Load();
 
         // MongoDB configuration
         var mongoClient = new MongoClient(Configuration["MongoDb:ConnectionString"]);
@@ -35,6 +40,14 @@ public class Startup
         {
             database.CreateCollection("Users");
         }
+        if (!collectionNames.Contains("Credentials"))
+        {
+            database.CreateCollection("Credentials");
+        }
+        if (!collectionNames.Contains("Tokens"))
+        {
+            database.CreateCollection("Tokens");
+        }
 
         //JWT
         Configuration["JwtSettings:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default_secret_key";
@@ -42,10 +55,45 @@ public class Startup
         Configuration["JwtSettings:Audience"] = Configuration["JwtSettings:Audience"] ?? "YourApiClient";
         Configuration["JwtSettings:AccessTokenExpirationMinutes"] = Configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "60";
 
+        var jwt_secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default_secret_key";
+        var jwt_issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "YourApiIssuer";
+        var jwt_audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "YourApiClient";
+
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.MapInboundClaims = false;
+            options.RequireHttpsMetadata = false; // Set to true in production
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                // Fixed: Changed "Jwt" to "JwtSettings" to match your assignments above
+                ValidIssuer = jwt_issuer,
+                ValidAudience = jwt_audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt_secret))
+            };
+        });
+
+        services.AddAuthorization();
+
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICredentialsRepository, CredentialsRepository>();
         services.AddScoped<IBlogService, BlogService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenRepository, TokenRepository>();
 
         services.AddControllers();
     }
@@ -58,12 +106,15 @@ public class Startup
             app.UseHsts();
         }
 
-        DotNetEnv.Env.Load();
-
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
+
         app.UseRouting();
+
+        app.UseAuthentication(); // Must be before app.UseAuthorization()
+        app.UseAuthorization();
+
         _ = app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
@@ -72,5 +123,7 @@ public class Startup
                 await context.Response.WriteAsync("Hello World!");
             });
         });
+
+
     }
 }
