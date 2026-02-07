@@ -23,7 +23,9 @@ public class Startup
         DotNetEnv.Env.Load();
 
         // MongoDB configuration
-        var mongoClient = new MongoClient(Configuration["MongoDb:ConnectionString"]);
+        var connectionString = Configuration["MongoDb:ConnectionString"]
+                       ?? "mongodb://localhost:27017";
+        var mongoClient = new MongoClient(connectionString);
         services.AddSingleton(mongoClient);
         services.AddScoped(provider =>
             mongoClient.GetDatabase(Configuration["MongoDb:DatabaseName"]));
