@@ -90,7 +90,7 @@ public class Startup
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICredentialsRepository, CredentialsRepository>();
         services.AddScoped<IBlogService, BlogService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenRepository, TokenRepository>();

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace User.Controllers
@@ -6,9 +8,9 @@ namespace User.Controllers
     [Route("api/v1/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUserProfileService _userService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserProfileService userService)
         {
             _userService = userService;
         }
@@ -54,9 +56,20 @@ namespace User.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
             request.Id = id;
+
+            var userId = User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID claim is missing.");
+            }
+            if (userId != id)
+            {
+                return Unauthorized("User can only update their own account!");
+            }
             try
             {
                 await _userService.UpdateUserAsync(request);
@@ -77,10 +90,20 @@ namespace User.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> DeleteUser(string id)
         {
             try
             {
+                var userId = User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User ID claim is missing.");
+                }
+                if (userId != id)
+                {
+                    return Unauthorized("User can only delete their own account!");
+                }
                 await _userService.DeleteUserAsync(id);
                 return NoContent();
             }

@@ -9,11 +9,11 @@ using Microsoft.IdentityModel.Tokens;
 public class AuthService : IAuthService
 {
     private readonly IPasswordService _passwordService;
-    private readonly IUserService _userService;
+    private readonly IUserProfileService _userService;
 
     private readonly ITokenRepository _tokenRepo;
 
-    public AuthService(IPasswordService passwordService, IUserService userService, ITokenRepository tokenRepo)
+    public AuthService(IPasswordService passwordService, IUserProfileService userService, ITokenRepository tokenRepo)
     {
         _passwordService = passwordService;
         _userService = userService;

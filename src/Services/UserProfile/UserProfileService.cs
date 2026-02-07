@@ -3,12 +3,12 @@ using MongoDB.Bson;
 /// <summary>
 /// The UserService class serves as the business logic layer for managing user profiles in the application. 
 /// </summary>
-public class UserService : IUserService
+public class UserProfileService : IUserProfileService
 {
     private readonly IUserRepository _repo;
     private readonly IPasswordService _passwordService;
 
-    public UserService(IUserRepository repo, IPasswordService passwordService)
+    public UserProfileService(IUserRepository repo, IPasswordService passwordService)
     {
         _repo = repo;
         _passwordService = passwordService;
@@ -151,37 +151,4 @@ public class UserService : IUserService
             Id = id
         };
     }
-
-    // /// <summary>
-    // /// Authenticates a user and returns a response indicating success or failure of the login attempt.
-    // /// </summary>
-    // /// <param name="request">The login request containing the username/email and password.</param>
-    // /// <returns>UserLoginResponse indicating the result of the login attempt.</returns>
-    // public async Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request)
-    // {
-    //     if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Email))
-    //     {
-    //         throw new ArgumentException("Username or email must be provided.");
-    //     }
-    //     if (string.IsNullOrEmpty(request.Password))
-    //     {
-    //         throw new ArgumentException("Password must be provided.");
-    //     }
-
-    //     var userProfile = new UserProfile
-    //     {
-    //         UserName = request.UserName,
-    //         Email = request.Email
-    //     };
-
-    //     // check if user exists with given username or email
-    //     var existingUser = await _repo.GetByUsernameOrEmail(userProfile);
-    //     if (existingUser == null) throw new ArgumentException("Invalid username or email.");
-
-    //     // validate password
-    //     var result = await _authService.LoginAsync(request);
-    //     if (result == null) throw new Exception("Login failed.");
-
-    //     return result;
-    // }
 }

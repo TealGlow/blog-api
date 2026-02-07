@@ -1,5 +1,5 @@
 
-public interface IUserService
+public interface IUserProfileService
 {
     Task<GetUserResponse> GetUserProfileAsync(string id);
     Task<UserProfile> GetUserProfileByUsernameOrEmailAsync(string usernameOrEmail);
