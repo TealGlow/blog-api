@@ -71,7 +71,7 @@ public class BlogService : IBlogService
     /// <returns>
     /// An AddBlogPostResponse indicating the result of the add operation.
     /// </returns>
-    public async Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request, string userId)
+    public async Task<AddBlogPostResponse> CreateBlogPostAsync(AddBlogPostRequest request, string userId)
     {
         var user = await _userRepo.GetByIdAsync(new ObjectId(userId));
         if (user == null) throw new Exception("User not found.");
@@ -86,7 +86,7 @@ public class BlogService : IBlogService
             AuthorId = user.Id.ToString()
         };
 
-        var response = await _repo.AddAsync(post);
+        var response = await _repo.CreateAsync(post);
         if (response == ObjectId.Empty)
             throw new Exception("Error adding post");
 

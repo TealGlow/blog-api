@@ -7,7 +7,7 @@ public interface IPostRepository
 
     Task<List<Post>> GetAllAsync();
 
-    Task<ObjectId> AddAsync(Post request);
+    Task<ObjectId> CreateAsync(Post request);
 
     Task<UpdateResult> UpdateAsync(UpdateBlogPostRequest request, ObjectId id);
 

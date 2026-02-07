@@ -44,7 +44,7 @@ public class PostRepository : IPostRepository
         }).ToList();
     }
 
-    public async Task<ObjectId> AddAsync(Post post)
+    public async Task<ObjectId> CreateAsync(Post post)
     {
         await _collection.InsertOneAsync(post);
         return post.Id;

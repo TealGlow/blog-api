@@ -5,7 +5,7 @@ public interface IBlogService
 
     Task<GetAllBlogPostsResponse> GetAllBlogPostsAsync();
 
-    Task<AddBlogPostResponse> AddBlogPostAsync(AddBlogPostRequest request, string userId);
+    Task<AddBlogPostResponse> CreateBlogPostAsync(AddBlogPostRequest request, string userId);
 
     Task<UpdateBlogPostResponse> UpdateBlogPostAsync(UpdateBlogPostRequest request, string userId);
 

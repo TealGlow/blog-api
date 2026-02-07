@@ -56,7 +56,7 @@ namespace Blog.Controllers
                 {
                     return Unauthorized("User ID claim is missing.");
                 }
-                var result = await _blogService.AddBlogPostAsync(request, userId);
+                var result = await _blogService.CreateBlogPostAsync(request, userId);
                 return Created("Blog", result);
             }
             catch (ArgumentException ex)
