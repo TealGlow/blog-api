@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 /// <summary>
 /// The UserService class serves as the business logic layer for managing user profiles in the application. 
@@ -12,13 +13,14 @@ public class AuthService : IAuthService
 {
     private readonly IPasswordService _passwordService;
     private readonly IUserService _userService;
-    private readonly IConfiguration _configuration;
 
-    public AuthService(IPasswordService passwordService, IUserService userService, IConfiguration configuration)
+    private readonly ITokenRepository _tokenRepo;
+
+    public AuthService(IPasswordService passwordService, IUserService userService, ITokenRepository tokenRepo)
     {
         _passwordService = passwordService;
         _userService = userService;
-        _configuration = configuration;
+        _tokenRepo = tokenRepo;
     }
 
     /// <summary>
@@ -38,6 +40,18 @@ public class AuthService : IAuthService
         if (!passwordValid) throw new ArgumentException("Invalid password.");
 
         var token = GenerateJwtToken(user);
+        if (string.IsNullOrEmpty(token))
+        {
+            throw new Exception("Failed to generate JWT token.");
+        }
+
+        // store the token in the database or cache if needed for future validation (optional, depending on your token management strategy)
+        var tokenStored = await _tokenRepo.AddAsync(new JwtSecurityToken(token), user.Id);
+        if (!tokenStored)
+        {
+            throw new Exception("Failed to store JWT token.");
+        }
+
         return new AuthLoginResponse
         {
             Success = true,
@@ -72,7 +86,7 @@ public class AuthService : IAuthService
             issuer: jwtIssuer,
             audience: jwtAudience, // Match "JwtSettings"
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(60), // Use UtcNow for consistency
+            expires: DateTime.UtcNow.AddMinutes(60),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

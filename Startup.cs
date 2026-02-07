@@ -93,6 +93,7 @@ public class Startup
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenRepository, TokenRepository>();
 
         services.AddControllers();
     }
