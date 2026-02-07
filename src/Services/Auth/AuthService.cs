@@ -2,9 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 
 /// <summary>
 /// The UserService class serves as the business logic layer for managing user profiles in the application. 
@@ -90,5 +87,23 @@ public class AuthService : IAuthService
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<bool> LogoutAsync(AuthLogoutRequest request)
+    {
+        // Implement logout logic, such as invalidating the user's token in the database or cache
+        // For example, you could delete the token from the database or mark it as invalid
+
+        // This is a placeholder implementation and should be replaced with actual token invalidation logic
+        var user = await _userService.GetUserProfileByUsernameOrEmailAsync(request.UserName);
+        if (user == null) throw new Exception("User not found.");
+
+        var tokenDeleted = await _tokenRepo.DeleteAsync(user.Id);
+        if (!tokenDeleted)
+        {
+            throw new Exception("Failed to invalidate JWT token.");
+        }
+
+        return true;
     }
 }

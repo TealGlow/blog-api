@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 public interface ITokenRepository
 {

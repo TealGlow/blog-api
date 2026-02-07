@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace Auth.Controllers
 {
@@ -39,27 +37,34 @@ namespace Auth.Controllers
             }
         }
 
-        // // logout
-        // [HttpPost("logout")]
-        // public async Task<ActionResult> Logout([FromBody] LogoutRequest request)
-        // {
-        //     try
-        //     {
-        //         await _userService.LogoutAsync(request);
-        //         return NoContent();
-        //     }
-        //     catch (ArgumentException ex)
-        //     {
-        //         return BadRequest(ex.Message);
-        //     }
-        //     catch (KeyNotFoundException ex)
-        //     {
-        //         return NotFound(ex.Message);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return StatusCode(500, $"Internal server error: {ex.Message}");
-        //     }
-        // }
+        // logout
+        [HttpPost("logout")]
+        public async Task<ActionResult> Logout([FromBody] AuthLogoutRequest request)
+        {
+            try
+            {
+                var result = await _authService.LogoutAsync(request);
+                if (result)
+                {
+                    return Ok(new { Success = true, Message = "Logout successful." });
+                }
+                else
+                {
+                    return BadRequest(new { Success = false, Message = "Logout failed." });
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

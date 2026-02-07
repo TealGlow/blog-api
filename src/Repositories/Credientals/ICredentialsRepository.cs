@@ -1,5 +1,4 @@
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 public interface ICredentialsRepository
 {

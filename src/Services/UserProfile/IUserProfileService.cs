@@ -1,4 +1,3 @@
-using MongoDB.Bson;
 
 public interface IUserService
 {
@@ -7,5 +6,4 @@ public interface IUserService
     Task<AddUserResponse> AddUserAsync(AddUserRequest request);
     Task<UpdateUserResponse> UpdateUserAsync(UpdateUserRequest request);
     Task<DeleteUserResponse> DeleteUserAsync(string id);
-    // Task<AuthLoginResponse> LoginAsync(AuthLoginRequest request);
 }

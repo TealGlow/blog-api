@@ -1,5 +1,4 @@
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 /// <summary>
 /// The UserService class serves as the business logic layer for managing user profiles in the application. 
