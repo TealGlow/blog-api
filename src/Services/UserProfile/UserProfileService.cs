@@ -113,9 +113,6 @@ public class UserProfileService : IUserProfileService
         var existingUser = await _repo.GetByIdAsync(objectId);
         if (existingUser == null) throw new Exception("User not found");
 
-        // TODO: Validate user is authorized to update this profile, Only a user can update their own profile, or an admin can update any profile.
-        // This will be after we implement authentication and authorization, but we can add a placeholder check here for now.
-
         // Update only provided fields
         var response = await _repo.UpdateAsync(request, objectId);
         if (response == null) throw new Exception("User not found");
@@ -139,9 +136,6 @@ public class UserProfileService : IUserProfileService
 
         var existingUser = await _repo.GetByIdAsync(objectId);
         if (existingUser == null) throw new Exception("User not found");
-
-        // TODO: Validate user is authorized to delete this profile, Only a user can delete their own profile, or an admin can delete any profile.
-        // We want only admins to be able to delete user profiles, so we can add a placeholder check here for now, and implement proper authorization after we have authentication in place.
 
         var result = await _repo.SoftDeleteAsync(objectId);
         if (result == null) throw new Exception("User not found");
